@@ -1,0 +1,3 @@
+app:
+  name: dv360-api-explorer
+  log_level: ALL

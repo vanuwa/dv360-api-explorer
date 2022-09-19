@@ -1,0 +1,23 @@
+{
+  "name": "dv360-api-explorer",
+  "version": "1.0.0",
+  "description": "Exploring abilities of DV360 API",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest",
+    "start": "node app.js | bunyan",
+    "start:dev": "GOOGLE_APPLICATION_CREDENTIALS=./credentials/sa.json node app.js | bunyan"
+  },
+  "author": "Ivan Kebal",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^28.1.3"
+  },
+  "dependencies": {
+    "@googleapis/displayvideo": "^5.0.1",
+    "@googleapis/doubleclickbidmanager": "^3.0.1",
+    "bunyan": "^1.8.15",
+    "config": "^3.3.7",
+    "googleapis": "^105.0.0"
+  }
+}
