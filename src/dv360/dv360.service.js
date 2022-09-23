@@ -7,11 +7,18 @@ const DEFAULT_CAMPAIGN_SCHEMA = require('./models/campaign.dv360.default');
 const DEFAULT_INSERTION_ORDER_SCHEMA = require('./models/insertion-order.dv360.default');
 const { partnerRevenueModel } = require("./models/line-item.dv360.default");
 
-const PARTNER_ID = 6151232;
-const ADVERTISER_ID = 999718697;
+// const PARTNER_ID = 6151232; // Inskin
+// const ADVERTISER_ID = 999718697; // Inskin
+
 // const CAMPAIGN_ID = 52536685;
 const CAMPAIGN_ID = 52537115;
 const INSERTION_ORDER_ID = 1008571120;
+
+// Azerion
+const PARTNER_ID = 1743072; // Azerion
+const ADVERTISER_ID = 1071649918; // Azerion
+
+// End of Azerion
 
 module.exports = class Dv360Service {
   static async connect () {
@@ -75,13 +82,25 @@ module.exports = class Dv360Service {
   }
 
   static async getAdvertisers (partner_id = PARTNER_ID) {
-    const { data } = await _client.advertisers.list({
-      partnerId: PARTNER_ID
-    });
+    let pageToken = null
+    let advertisers = []
 
-    logger.debug({ PARTNER_ID, data }, 'Advertisers');
+    do {
+      const { data } = await _client.advertisers.list({
+        partnerId: PARTNER_ID,
+        ...(pageToken ? { pageToken } : {})
+      });
 
-    return data.advertisers || data;
+      pageToken = data.nextPageToken
+
+      logger.debug({ PARTNER_ID, data }, 'DATA');
+
+      advertisers = advertisers.concat(data.advertisers)
+    } while (pageToken)
+
+    logger.debug({ PARTNER_ID, advertisers }, 'Advertisers');
+
+    return advertisers;
   }
 
   static async getAdvertiser (advertiser_id = ADVERTISER_ID) {
@@ -158,11 +177,25 @@ module.exports = class Dv360Service {
   }
 
   static async getCampaigns (advertiser_id = ADVERTISER_ID) {
-    const { data } = await _client.advertisers.campaigns.list({ advertiserId: advertiser_id });
+    let pageToken = null
+    let campaigns = []
 
-    logger.debug({ advertiser_id, campaigns: data }, 'Campaigns');
+    do {
+      const { data } = await _client.advertisers.campaigns.list({
+        advertiserId: advertiser_id,
+        ...(pageToken ? { pageToken } : {})
+      });
 
-    return data.campaigns || data;
+      pageToken = data.nextPageToken
+
+      logger.debug({ advertiser_id, data }, 'DATA');
+
+      campaigns = campaigns.concat(data.campaigns)
+    } while (pageToken)
+
+    logger.debug({ advertiser_id, campaigns }, 'Campaigns');
+
+    return campaigns;
   }
 
   static async getLineItems (campaign_id = CAMPAIGN_ID, advertiser_id = ADVERTISER_ID) {
