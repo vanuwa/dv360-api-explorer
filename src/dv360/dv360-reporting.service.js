@@ -28,15 +28,31 @@ module.exports = class Dv360ReportingService {
         title: `Butelka ${new Date().toISOString()}`,
         dataRange: {
           // range: 'CURRENT_DAY'
-          range: 'LAST_365_DAYS'
+          // range: 'LAST_365_DAYS'
+          range: 'CUSTOM_DATES',
+          customStartDate: '',
+          customEndDate: ''
         },
         format: 'CSV'
       },
       params: {
         type: 'STANDARD',
         // groupBys: ['FILTER_MEDIA_PLAN', 'FILTER_LINE_ITEM'],
-        groupBys: ['FILTER_MEDIA_PLAN', 'FILTER_MEDIA_PLAN_NAME', 'FILTER_ADVERTISER', 'FILTER_ADVERTISER_NAME', 'FILTER_ADVERTISER_CURRENCY'],
-        metrics: ['METRIC_IMPRESSIONS', 'METRIC_CLICKS', 'METRIC_REVENUE_ADVERTISER', 'METRIC_PROFIT_ADVERTISER']
+        groupBys: [
+          'FILTER_MEDIA_PLAN',
+          'FILTER_MEDIA_PLAN_NAME',
+          'FILTER_ADVERTISER',
+          'FILTER_ADVERTISER_NAME',
+          'FILTER_ADVERTISER_CURRENCY',
+          // 'FILTER_BUDGET_SEGMENT_BUDGET'
+        ],
+        metrics: [
+          'METRIC_IMPRESSIONS',
+          'METRIC_CLICKS',
+          'METRIC_REVENUE_ADVERTISER',
+          'METRIC_PROFIT_ADVERTISER',
+          'METRIC_REVENUE_ECPM_ADVERTISER'
+        ]
         // metrics: ['METRIC_IMPRESSIONS', 'METRIC_BILLABLE_IMPRESSIONS', 'METRIC_CLICKS']
         // metrics: ['METRIC_IMPRESSIONS', 'METRIC_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS', 'METRIC_BILLABLE_IMPRESSIONS', 'METRIC_GRP_CORRECTED_VIEWABLE_IMPRESSIONS','METRIC_CLICKS']
       },

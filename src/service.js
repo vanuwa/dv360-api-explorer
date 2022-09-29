@@ -7,28 +7,33 @@ class Service {
   static async execute () {
     logger.debug('Executing...');
 
-    Service.createCorsRegExp('https://console.360yielddev.com/')
-    Service.createCorsRegExp('https://console-api.360yielddev.com/')
+    // Service.createCorsRegExp('https://console.360yielddev.com/')
+    // Service.createCorsRegExp('https://console-api.360yielddev.com/')
 
     const platform = new Platform(Dv360);
 
-    // await platform.connect();
+    await platform.connect();
 
     // const advertiser = await platform.getAdvertisers();
-
-    // logger.debug(`Advertiser: ${advertiser.length} rows`);
-    // const campaigns = await platform.getAdvertisersCampaigns();
     //
+    // logger.debug(`Advertiser: ${advertiser.length} rows`);
+    // const campaigns = await platform.getAdvertisersCampaigns(6151232);
+
     // Service.printInfoAboutAdvertisersCampaigns(campaigns);
 
 
     // await platform.getCampaign(52609656);
+    // await platform.getCampaigns(999718697);
 
     // await platform.getInsertionOrder(1008862747);
 
-    // await platform.getLineItem(18084492886);
+    // await platform.getLineItems(52701690, 999718697);
+
+    // await platform.getLineItem(18372456133);
+    // await platform.getLineItemAssignedTargetingOptions(18372456133, ['TARGETING_TYPE_APP'])
+    // await platform.createLineItemAppTargetingOptions(18372456133, 362732592462)
     // await platform.getLineItem(18142496104);
-    // await platform.getTargetingOptions('TARGETING_TYPE_DEVICE_TYPE');
+    await platform.getTargetingOptions('TARGETING_TYPE_DEVICE_TYPE');
 
     // await platform.searchGeoTargetingOptions('Poland')
 
