@@ -7,11 +7,20 @@ const DEFAULT_CAMPAIGN_SCHEMA = require('./models/campaign.dv360.default');
 const DEFAULT_INSERTION_ORDER_SCHEMA = require('./models/insertion-order.dv360.default');
 const { partnerRevenueModel } = require("./models/line-item.dv360.default");
 
-const PARTNER_ID = 6151232;
-const ADVERTISER_ID = 999718697;
+const PARTNER_ID = 6151232; // Inskin
+const ADVERTISER_ID = 999718697; // Inskin
+
+const TARGETING_TYPES = ['TARGETING_TYPE_APP', 'TARGETING_TYPE_URL', 'TARGETING_TYPE_DEVICE_TYPE', 'TARGETING_TYPE_ENVIRONMENT', 'TARGETING_TYPE_GEO_REGION', 'TARGETING_TYPE_GEO_REGION']
+
 // const CAMPAIGN_ID = 52536685;
 const CAMPAIGN_ID = 52537115;
 const INSERTION_ORDER_ID = 1008571120;
+
+// Azerion
+// const PARTNER_ID = 1743072; // Azerion
+// const ADVERTISER_ID = 1071649918; // Azerion
+
+// End of Azerion
 
 module.exports = class Dv360Service {
   static async connect () {
@@ -75,13 +84,25 @@ module.exports = class Dv360Service {
   }
 
   static async getAdvertisers (partner_id = PARTNER_ID) {
-    const { data } = await _client.advertisers.list({
-      partnerId: PARTNER_ID
-    });
+    let pageToken = null
+    let advertisers = []
 
-    logger.debug({ PARTNER_ID, data }, 'Advertisers');
+    do {
+      const { data } = await _client.advertisers.list({
+        partnerId: PARTNER_ID,
+        ...(pageToken ? { pageToken } : {})
+      });
 
-    return data.advertisers || data;
+      pageToken = data.nextPageToken
+
+      logger.debug({ PARTNER_ID, data }, 'DATA');
+
+      advertisers = advertisers.concat(data.advertisers)
+    } while (pageToken)
+
+    logger.debug({ PARTNER_ID, advertisers }, 'Advertisers');
+
+    return advertisers;
   }
 
   static async getAdvertiser (advertiser_id = ADVERTISER_ID) {
@@ -103,7 +124,7 @@ module.exports = class Dv360Service {
     let campaigns = []
 
     for (let i = 0; i < ids.length; i++) {
-      campaigns = campaigns.concat(await Dv360Service.getCampaigns(ids[i]));
+      campaigns = campaigns.concat((await Dv360Service.getCampaigns(ids[i])) || []);
     }
 
     logger.debug({ partner_id, campaigns }, '[ getAdvertisersCampaigns ]');
@@ -158,16 +179,60 @@ module.exports = class Dv360Service {
   }
 
   static async getCampaigns (advertiser_id = ADVERTISER_ID) {
-    const { data } = await _client.advertisers.campaigns.list({ advertiserId: advertiser_id });
+    let pageToken = null
+    let campaigns = []
 
-    logger.debug({ advertiser_id, campaigns: data }, 'Campaigns');
+    try {
+      do {
+        const {data} = await _client.advertisers.campaigns.list({
+          advertiserId: advertiser_id,
+          ...(pageToken ? {pageToken} : {})
+        });
 
-    return data.campaigns || data;
+        pageToken = data.nextPageToken
+
+        logger.debug({advertiser_id, data}, 'DATA');
+
+        campaigns = campaigns.concat(data.campaigns || [])
+      } while (pageToken)
+    } catch (error) {
+      logger.error(error)
+
+      logger.warn(`Oops. Can not get campaigns for ${advertiser_id}`)
+    }
+
+    logger.debug({ advertiser_id, campaigns }, 'Campaigns');
+
+    return campaigns;
   }
 
   static async getLineItems (campaign_id = CAMPAIGN_ID, advertiser_id = ADVERTISER_ID) {
-    const res = await _client.advertisers.lineItems.list({ advertiserId: advertiser_id, filter: `campaignId = ${campaign_id}` });
-    return res.data;
+    let pageToken = null
+    let rows = []
+
+    try {
+      do {
+        const { data } = await _client.advertisers.lineItems.list({
+          advertiserId: advertiser_id, filter: `campaignId = ${campaign_id}`,
+          ...(pageToken ? {pageToken} : {})
+        });
+
+        pageToken = data.nextPageToken
+
+        logger.debug({ advertiser_id, data }, 'DATA');
+
+        rows = rows.concat(data.lineItems || [])
+      } while (pageToken)
+    } catch (error) {
+      logger.error(error)
+
+      logger.warn(`Oops. Can not get lineItems for ${advertiser_id}, filtered by campaign ${campaign_id}`)
+    }
+
+
+    logger.debug({ advertiser_id, rows }, `getLineItems: ${rows?.length} rows`)
+
+    return rows;
   }
 
   static async createCampaign (campaign_model = DEFAULT_CAMPAIGN_SCHEMA, advertiser_id = ADVERTISER_ID) {
@@ -327,6 +392,22 @@ module.exports = class Dv360Service {
     return data;
   }
 
+  static async getLineItemAssignedTargetingOptions (line_item_id, targetingTypes = TARGETING_TYPES, advertiser_id = ADVERTISER_ID) {
+    let assignedOptions = []
+
+    for (let i = 0; i < targetingTypes.length; i++) {
+      const { data } = await _client.advertisers.lineItems.targetingTypes.assignedTargetingOptions.list({
+        advertiserId: advertiser_id,
+        lineItemId: line_item_id,
+        targetingType: targetingTypes[i]
+      })
+
+      assignedOptions = assignedOptions.concat(data.assignedTargetingOptions || [])
+    }
+
+    logger.debug({ advertiser_id, line_item_id, targetingTypes, assignedOptions }, 'getLineItemAssignedTargetingOptions');
+  }
+
   static async searchTargetingOptions(term, targeting_type = 'TARGETING_TYPE_ENVIRONMENT', advertiser_id = ADVERTISER_ID) {
     const { data } = await _client.targetingTypes.targetingOptions.search({
       targetingType: targeting_type,
@@ -363,6 +444,23 @@ module.exports = class Dv360Service {
     })
 
     logger.debug({ advertiser_id, line_item_id, targeting_type, targeting_options: data }, 'Create Linet Item Targeting Options');
+
+    return data;
+  }
+
+  static async createLineItemAppTargetingOptions (line_item_id, appId, advertiser_id = ADVERTISER_ID) {
+    const { data } = await _client.advertisers.lineItems.targetingTypes.assignedTargetingOptions.create({
+      advertiserId: advertiser_id,
+      lineItemId: line_item_id,
+      targetingType: 'TARGETING_TYPE_APP',
+      requestBody: {
+        appDetails: {
+          appId: appId.toString()
+        }
+      }
+    })
+
+    logger.debug({ advertiser_id, line_item_id, data }, 'createLineItemAppTargetingOptions');
 
     return data;
   }

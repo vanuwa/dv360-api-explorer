@@ -23,8 +23,8 @@ module.exports = class Platform {
     return this._platform.getAdvertisersCampaigns(partner_id)
   }
 
-  getCampaigns () {
-    return this._platform.getCampaigns();
+  getCampaigns (advertiser_id) {
+    return this._platform.getCampaigns(advertiser_id);
   }
 
   createCampaign (dto) {
@@ -43,12 +43,24 @@ module.exports = class Platform {
     return this._platform.getInsertionOrder(insertion_order_id)
   }
 
+  getLineItems (campaign_id, advertiser_id) {
+    return this._platform.getLineItems(campaign_id, advertiser_id)
+  }
+
   getLineItem (line_item_id) {
     return this._platform.getLineItem(line_item_id)
   }
 
   createLineItemTargetingOptions (line_item_id, targeting_type = 'TARGETING_TYPE_ENVIRONMENT') {
     return this._platform.createLineItemTargetingOptions(line_item_id, targeting_type)
+  }
+
+  createLineItemAppTargetingOptions (line_item_id, appId) {
+    return this._platform.createLineItemAppTargetingOptions(line_item_id, appId)
+  }
+
+  getLineItemAssignedTargetingOptions (line_item_id, targeting_types, advertiser_id) {
+    return this._platform.getLineItemAssignedTargetingOptions(line_item_id, targeting_types, advertiser_id)
   }
 
   createCreative (dto) {
